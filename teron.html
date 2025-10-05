@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            transform: rotateY(180deg);
+        }
+
+        .word {
+            font-size: 3em;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .definition {
+            font-size: 1.8em;
+            color: white;
+            text-align: center;
+            line-height: 1.5;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .prev-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .flip-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .counter {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .hint {
+            text-align: center;
+            color: white;
+            font-size: 1.1em;
+            margin-top: 20px;
+            opacity: 0.9;
+        }
+
+        .pronunciation {
+            font-size: 1.3em;
+            color: #ffffcc;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        .song-section {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .song-title {
+            color: white;
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .song-lyrics {
+            color: white;
+            font-size: 1.2em;
+            line-height: 1.8;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .play-song-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .flashcard {
+                height: 350px;
+            }
+
+            .word {
+                font-size: 2.5em;
+            }
+
+            .definition {
+                font-size: 1.4em;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 Spelling Flashcards 🌟</h1>
+        
+        <div class="counter">
+            Card <span id="current">1</span> of <span id="total">20</span>
+        </div>
+
+        <div class="card-container">
+            <div class="flashcard" id="flashcard">
+                <div class="card-face card-front">
+                    <div class="word" id="word"></div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="definition" id="definition"></div>
+                    <div class="pronunciation" id="pronunciation"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="prev-btn" onclick="previousCard()">⬅️ Previous</button>
+            <button class="flip-btn" onclick="flipCard()">🔄 Flip Card</button>
+            <button class="next-btn" onclick="nextCard()">Next ➡️</button>
+        </div>
+
+        <div class="hint">
+            💡 Click the card or "Flip Card" button to see the meaning!
+        </div>
+
+        <div class="song-section">
+            <div class="song-title">🎵 Spelling Song 🎵</div>
+            <div class="song-lyrics">
+                Let's spell the words, it's fun to say!<br>
+                We'll learn to read and write today!<br><br>
+                
+                COOK-ee, MAG-pie, COLL-ee too,<br>
+                BROWN-ee, PIE - we're spelling through!<br><br>
+                
+                un-TIE, SKEE, suh-FAR-ee bright,<br>
+                mack-uh-ROH-nee, what a sight!<br><br>
+                
+                huh-WHY-ee, MOON-lite glowing,<br>
+                FIRE-fly, BUTT-er-fly showing!<br><br>
+                
+                SLIP-er-ee, SPLAT-er there,<br>
+                buh-LOON floating in the air!<br><br>
+                
+                SCRIB-ul, TIM-puh-nee drums,<br>
+                uh-PEER, PRAIR-ee - here it comes!<br><br>
+                
+                Twenty words we learned today,<br>
+                Now we know just what to say! 🌟
+            </div>
+            <button class="play-song-btn" onclick="toggleSong()">🎵 Play/Stop Song</button>
+        </div>
+    </div>
+
+    <script>
+        const words = [
+            { word: "cookie", definition: "A sweet treat you can eat", pronunciation: "COOK-ee" },
+            { word: "magpie", definition: "A black and white bird", pronunciation: "MAG-pie" },
+            { word: "collie", definition: "A type of dog with long fur", pronunciation: "COLL-ee" },
+            { word: "brownie", definition: "A yummy chocolate dessert", pronunciation: "BROWN-ee" },
+            { word: "pie", definition: "A baked food with crust and filling", pronunciation: "PIE" },
+            { word: "untie", definition: "To undo a knot", pronunciation: "un-TIE" },
+            { word: "ski", definition: "To slide on snow with special shoes", pronunciation: "SKEE" },
+            { word: "safari", definition: "A trip to see wild animals", pronunciation: "suh-FAR-ee" },
+            { word: "macaroni", definition: "Pasta shaped like small tubes", pronunciation: "mack-uh-ROH-nee" },
+            { word: "Hawaii", definition: "Islands with beaches and palm trees", pronunciation: "huh-WHY-ee" },
+            { word: "moonlight", definition: "Light from the moon at night", pronunciation: "MOON-lite" },
+            { word: "firefly", definition: "A bug that lights up at night", pronunciation: "FIRE-fly" },
+            { word: "butterfly", definition: "A pretty insect with colorful wings", pronunciation: "BUTT-er-fly" },
+            { word: "slippery", definition: "Hard to hold or walk on", pronunciation: "SLIP-er-ee" },
+            { word: "splatter", definition: "To splash or make a mess", pronunciation: "SPLAT-er" },
+            { word: "balloon", definition: "A bag filled with air that floats", pronunciation: "buh-LOON" },
+            { word: "scribble", definition: "To draw messy lines or write badly", pronunciation: "SCRIB-ul" },
+            { word: "timpani", definition: "Big drums you hit with sticks", pronunciation: "TIM-puh-nee" },
+            { word: "appear", definition: "To show up or be seen", pronunciation: "uh-PEER" },
+            { word: "prairie", definition: "Flat land with grass and few trees", pronunciation: "PRAIR-ee" }
+        ];
+
+        let currentIndex = 0;
+        let isSpeaking = false;
+        let utterance = null;
+
+        function showCard(index) {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.remove('flipped');
+            
+            document.getElementById('word').textContent = words[index].word;
+            document.getElementById('definition').textContent = words[index].definition;
+            document.getElementById('pronunciation').textContent = '🗣️ Say it: ' + words[index].pronunciation;
+            document.getElementById('current').textContent = index + 1;
+            document.getElementById('total').textContent = words.length;
+        }
+
+        function toggleSong() {
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                return;
+            }
+
+            const songText = `
+                Let's spell the words, it's fun to say!
+                We'll learn to read and write today!
+                
+                COOK ee, MAG pie, COLL ee too,
+                BROWN ee, PIE, we're spelling through!
+                
+                un TIE, SKEE, suh FAR ee bright,
+                mack uh ROH nee, what a sight!
+                
+                huh WHY ee, MOON lite glowing,
+                FIRE fly, BUTT er fly showing!
+                
+                SLIP er ee, SPLAT er there,
+                buh LOON floating in the air!
+                
+                SCRIB ul, TIM puh nee drums,
+                uh PEER, PRAIR ee, here it comes!
+                
+                Twenty words we learned today,
+                Now we know just what to say!
+            `;
+
+            utterance = new SpeechSynthesisUtterance(songText);
+            utterance.rate = 0.8;
+            utterance.pitch = 1.2;
+            
+            utterance.onend = function() {
+                isSpeaking = false;
+            };
+
+            window.speechSynthesis.speak(utterance);
+            isSpeaking = true;
+        }
+
+        function flipCard() {
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % words.length;
+            showCard(currentIndex);
+        }
+
+        function previousCard() {
+            currentIndex = (currentIndex - 1 + words.length) % words.length;
+            showCard(currentIndex);
+        }
+
+        document.getElementById('flashcard').addEventListener('click', flipCard);
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') {
+                nextCard();
+            } else if (event.key === 'ArrowLeft') {
+                previousCard();
+            } else if (event.key === ' ') {
+                event.preventDefault();
+                flipCard();
+            }
+        });
+
+        showCard(0);
+    </script>
+</body>
+</html>
